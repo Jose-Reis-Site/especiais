@@ -39,18 +39,18 @@
         .content-area { flex: 1; background: white; border: 1px solid #e2e8f0; border-top: none; padding: 15px; overflow-y: auto; border-radius: 0 0 8px 8px; }
         .tabela-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 15px; align-items: start; }
 
-        /* Estilo do Card Único de Itinerário */
+        /* Card de Itinerário Ajustado para o Grid */
         .card-itinerario { 
-            grid-column: 1 / -1; 
             background: var(--iti-bg); 
             border: 2px solid var(--iti-border); 
             border-radius: 8px; 
             padding: 12px; 
             margin-bottom: 10px;
             color: var(--iti-text);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
         }
-        .card-itinerario b { color: #000; font-size: 14px; display: block; margin-bottom: 8px; border-bottom: 1px solid var(--iti-border); padding-bottom: 4px; }
-        .iti-item { font-size: 13px; line-height: 1.5; margin-bottom: 4px; padding-left: 10px; border-left: 3px solid var(--iti-border); }
+        .card-itinerario b { color: #000; font-size: 14px; display: block; margin-bottom: 8px; border-bottom: 1px solid var(--iti-border); padding-bottom: 4px; text-transform: uppercase; }
+        .iti-item { font-size: 12px; line-height: 1.4; margin-bottom: 4px; padding-left: 8px; border-left: 2px solid var(--iti-border); }
 
         .card-tabela { border: 2px solid var(--primary); border-radius: 8px; background: white; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin-bottom: 10px; }
         .card-header { background: var(--primary); color: white; padding: 8px; text-align: center; }
@@ -77,8 +77,8 @@
             .header, .control-panel, .tab-bar, .btn-action, #sync-status { display: none !important; }
             .app-container, .content-area { display: block !important; height: auto !important; border: none !important; padding: 0 !important; margin: 0 !important; }
             .tabela-grid { display: flex !important; flex-wrap: wrap !important; gap: 10px !important; }
-            .card-itinerario { border: 1px solid #fab005 !important; background: #fff9db !important; -webkit-print-color-adjust: exact; width: 100%; }
-            .card-tabela { page-break-inside: avoid; margin-bottom: 10px; width: 48% !important; box-sizing: border-box; border: 1px solid #000 !important; }
+            .card-itinerario, .card-tabela { page-break-inside: avoid; margin-bottom: 10px; width: 48% !important; box-sizing: border-box; border: 1px solid #000 !important; }
+            .card-itinerario { background: #fff9db !important; -webkit-print-color-adjust: exact; }
             .card-header { background: #eee !important; color: #000 !important; }
             .mini-table th { background: #eee !important; border: 1px solid #000; }
             .mini-table td { border: 1px solid #000; }
@@ -252,7 +252,7 @@
 
         let htmlFinal = "";
 
-        // AGRUPAMENTO DE ITINERÁRIOS (IDA e VOLTA em cards únicos)
+        // ITINERÁRIOS LADO A LADO
         ["IDA", "VOLTA"].forEach(tipo => {
             const itens = dadosGlobais.filter(x => x.linha === linha && x.veiculo === tipo);
             if (itens.length > 0) {

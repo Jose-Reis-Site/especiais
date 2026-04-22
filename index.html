@@ -18,7 +18,6 @@
             --garagem-text: #c53030;
             --ter-bg: #e1effe;
             --ter-text: #1e429f;
-            /* Novas cores para Itinerário */
             --iti-bg: #fff9db;
             --iti-border: #fab005;
             --iti-text: #856404;
@@ -31,15 +30,7 @@
         .control-panel { background: #fff; padding: 10px; border-radius: 8px 8px 0 0; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
         .filter-group { display: flex; align-items: center; gap: 5px; font-weight: bold; font-size: 12px; color: var(--primary); }
         
-        select, input[type="text"] { 
-            padding: 8px 4px; 
-            border-radius: 4px; 
-            border: 1px solid #cbd5e0; 
-            outline: none; 
-            font-size: 13px;
-            min-width: 60px;
-            max-width: 130px;
-        }
+        select, input[type="text"] { padding: 8px 4px; border-radius: 4px; border: 1px solid #cbd5e0; outline: none; font-size: 13px; min-width: 60px; max-width: 130px; }
 
         .tab-bar { display: flex; background: #e2e8f0; padding: 5px 15px 0; gap: 5px; }
         .tab-btn { padding: 10px 15px; cursor: pointer; border: none; background: #cbd5e0; border-radius: 8px 8px 0 0; font-weight: bold; color: #4a5568; }
@@ -48,18 +39,18 @@
         .content-area { flex: 1; background: white; border: 1px solid #e2e8f0; border-top: none; padding: 15px; overflow-y: auto; border-radius: 0 0 8px 8px; }
         .tabela-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 15px; align-items: start; }
 
-        /* Estilo do Card de Itinerário (IDA/VOLTA) */
+        /* Estilo do Card Único de Itinerário */
         .card-itinerario { 
-            grid-column: 1 / -1; /* Ocupa a largura total */
+            grid-column: 1 / -1; 
             background: var(--iti-bg); 
-            border: 2px dashed var(--iti-border); 
+            border: 2px solid var(--iti-border); 
             border-radius: 8px; 
             padding: 12px; 
-            margin-bottom: 5px;
+            margin-bottom: 10px;
             color: var(--iti-text);
         }
-        .card-itinerario b { color: #000; font-size: 14px; display: block; margin-bottom: 5px; }
-        .iti-msg { font-size: 13px; line-height: 1.4; white-space: pre-line; }
+        .card-itinerario b { color: #000; font-size: 14px; display: block; margin-bottom: 8px; border-bottom: 1px solid var(--iti-border); padding-bottom: 4px; }
+        .iti-item { font-size: 13px; line-height: 1.5; margin-bottom: 4px; padding-left: 10px; border-left: 3px solid var(--iti-border); }
 
         .card-tabela { border: 2px solid var(--primary); border-radius: 8px; background: white; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin-bottom: 10px; }
         .card-header { background: var(--primary); color: white; padding: 8px; text-align: center; }
@@ -84,7 +75,7 @@
         @media print {
             html, body { height: auto !important; overflow: visible !important; background: white !important; }
             .header, .control-panel, .tab-bar, .btn-action, #sync-status { display: none !important; }
-            .app-container, .content-area { display: block !important; height: auto !important; border: none !important; padding: 0 !important; margin: 0 !important; overflow: visible !important; }
+            .app-container, .content-area { display: block !important; height: auto !important; border: none !important; padding: 0 !important; margin: 0 !important; }
             .tabela-grid { display: flex !important; flex-wrap: wrap !important; gap: 10px !important; }
             .card-itinerario { border: 1px solid #fab005 !important; background: #fff9db !important; -webkit-print-color-adjust: exact; width: 100%; }
             .card-tabela { page-break-inside: avoid; margin-bottom: 10px; width: 48% !important; box-sizing: border-box; border: 1px solid #000 !important; }
@@ -108,15 +99,12 @@
             <input type="file" id="fileTest" accept=".csv" class="hidden" onchange="importarManual(this)">
             <button class="btn-action btn-print" onclick="window.print()">🖨️</button>
         </div>
-
         <div id="filter-tabelas" class="filter-group">
             <span>Linha:</span>
             <select id="select-linha" onchange="atualizarListaTabelas()"></select>
-            
             <span id="label-tabela" class="hidden">Tab:</span>
             <select id="select-tabela" class="hidden" onchange="renderizarTabelas()"></select>
         </div>
-
         <div id="filter-tripulantes" class="filter-group hidden">
             <input type="text" id="search-trip" placeholder="Busca Tripulante..." onkeyup="renderizarTripulantes()">
         </div>
@@ -219,7 +207,6 @@
     }
 
     function obterVeiculosOrdenados(linha) {
-        // Filtra para ignorar IDA/VOLTA na contagem de veículos reais
         const filtrados = dadosGlobais.filter(d => d.linha === linha && d.veiculo !== "IDA" && d.veiculo !== "VOLTA");
         const primeiroHorarioCarro = {};
         filtrados.forEach(d => {
@@ -265,15 +252,17 @@
 
         let htmlFinal = "";
 
-        // Adiciona Cards de ITINERÁRIO (IDA/VOLTA) no topo
-        const itinerarios = dadosGlobais.filter(x => x.linha === linha && (x.veiculo === "IDA" || x.veiculo === "VOLTA"));
-        itinerarios.forEach(iti => {
-            htmlFinal += `
-                <div class="card-itinerario">
-                    <b>📍 ITINERÁRIO: ${iti.veiculo}</b>
-                    <div class="iti-msg">${iti.msg}</div>
-                </div>
-            `;
+        // AGRUPAMENTO DE ITINERÁRIOS (IDA e VOLTA em cards únicos)
+        ["IDA", "VOLTA"].forEach(tipo => {
+            const itens = dadosGlobais.filter(x => x.linha === linha && x.veiculo === tipo);
+            if (itens.length > 0) {
+                htmlFinal += `
+                    <div class="card-itinerario">
+                        <b>📍 ITINERÁRIO: ${tipo}</b>
+                        ${itens.map(i => `<div class="iti-item">${i.msg}</div>`).join('')}
+                    </div>
+                `;
+            }
         });
 
         const todosVeiculosLinha = obterVeiculosOrdenados(linha);
@@ -282,7 +271,7 @@
         htmlFinal += veiculosParaRenderizar.map((v) => {
             const numTabela = todosVeiculosLinha.indexOf(v) + 1;
             const viagens = dadosGlobais.filter(x => x.veiculo === v && x.linha === linha).sort((a,b) => paraMinutos(a.ini, a.trip) - paraMinutos(b.ini, b.trip));
-            return gerarCard(traduzirLinha(linha), `TABELA ${String(numTabela).padStart(2,'0')} | CARRO ${v} | DIA UTIL`, viagens, true);
+            return gerarCard(traduzirLinha(linha), `TABELA ${String(numTabela).padStart(2,'0')} | CARRO ${v}`, viagens, true);
         }).join('');
 
         grid.innerHTML = htmlFinal;
@@ -332,7 +321,7 @@
                     if (idxTabela > 0) infoTabela = ` | TABELA ${String(idxTabela).padStart(2, '0')}`;
                 }
                 const carroTexto = veiculoAtual ? ` | CARRO ${veiculoAtual}` : "";
-                return gerarCard(`TRIPULANTE: ${t} | DIAS ÚTEIS`, `${tituloAtividade}${infoTabela}${carroTexto}`, g, false);
+                return gerarCard(`TRIPULANTE: ${t}`, `${tituloAtividade}${infoTabela}${carroTexto}`, g, false);
             }).join('');
         });
         grid.innerHTML = htmlFinal;
